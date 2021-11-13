@@ -1,0 +1,100 @@
+esphome:
+  name: fan
+  platform: ESP8266
+  board: d1_mini
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "123456789@#$%^&"
+
+wifi:
+  ssid: "12345678"
+  password: "12345678"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "fan Fallback Hotspot"
+    password: "12345678"
+
+captive_portal:
+
+web_server:
+  port: 80
+ 
+
+
+
+binary_sensor:    
+  - platform: gpio
+    name: 'btn1'
+    id: btn1
+    # internal: true
+    pin:
+      number: D1
+      mode: INPUT_PULLUP
+      inverted: True
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+    on_press:
+      - switch.toggle: relaya
+  - platform: gpio
+    name: 'btn2'
+    id: btn2
+    # internal: true
+    pin:
+      number: D2
+      mode: INPUT_PULLUP
+      inverted: True
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+    on_press:
+      - switch.toggle: relayb
+  - platform: gpio
+    name: 'btn3'
+    id: btn3
+    # internal: true
+    pin:
+      number: D5
+      mode: INPUT_PULLUP
+      inverted: True
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+    on_press:
+      - switch.toggle: relayc
+      
+switch:
+  - platform: restart
+    name: "esp8266_fan"
+  - platform: gpio # Relay1 接強檔
+    name: 'sw1'
+    pin: D4
+    id: relaya
+    icon: "mdi:fan"
+    # interlock: &interlock_group [relay1, relay2, relay3]
+    interlock: [relaya, relayb, relayc]
+    # restore_mode: ALWAYS_OFF
+  - platform: gpio # Relay2 接中檔
+    name: 'sw2'
+    pin: D3
+    id: relayb
+    icon: "mdi:fan"
+    # interlock: *interlock_group
+    interlock: [relaya, relayb, relayc]
+    # restore_mode: ALWAYS_OFF
+  - platform: gpio # Relay3 接弱檔
+    name: 'sw3'
+    pin: D8
+    id: relayc
+    icon: "mdi:fan"
+    # interlock: *interlock_group
+    interlock: [relaya, relayb, relayc] 
+    
