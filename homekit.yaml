@@ -1,0 +1,10 @@
+- auto_start: true
+  port: 54321
+  name: fan
+  filter:
+    exclude_domains:
+      - fan
+    include_entities:
+      - fan.workingroom_fan2
+      
+      
