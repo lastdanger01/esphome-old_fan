@@ -1,0 +1,102 @@
+fan:
+  - platform: template
+    fans:
+      workingroom_fan2:
+        friendly_name: "工作室電風扇2"
+        value_template: "{{ states('input_boolean.fan_state') }}"
+        percentage_template: "{{ states('input_number.fan_speed_percent')|float }}"
+        turn_on:
+          service: script.fan_on
+        turn_off:
+          service: script.fan_off
+        set_percentage:
+          service: script.fan_set_speed_percent
+          data:
+            percentage: "{{ percentage }}"
+        speed_count: 3
+input_number:                             #風速量狀態
+  fan_speed_percent:
+    name: Fan Speed Percent
+    initial: 0
+    min: 0
+    max: 100
+    step: 20
+input_boolean:                             #開關狀態
+  fan_state:
+    name: Fan State
+script:
+    fan_off:
+      alias: Fan Off
+      sequence:
+        - service: switch.turn_off
+          data:
+            entity_id: switch.sw1
+        - service: switch.turn_off
+          data:
+            entity_id: switch.sw2
+        - service: switch.turn_off
+          data:
+            entity_id: switch.sw3
+        - service: input_boolean.turn_off
+          data:
+            entity_id: input_boolean.fan_state       
+    fan_on:
+      alias: Fan On
+      sequence:
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.fan_state
+        - service: switch.turn_on
+          target:
+            entity_id: switch.sw1
+        - delay:
+            milliseconds: 1000
+        - service: input_number.set_value
+          entity_id: input_number.fan_speed_percent
+          data:
+            value: "60"
+    fan_set_speed_percent:
+      alias: Fan Set Percentage
+      sequence:
+        - service: input_number.set_value
+          entity_id: input_number.fan_speed_percent
+          data:
+            value: "{{ percentage }}"
+        - delay:
+            milliseconds: 500
+        - service: >
+            {% if states("input_number.fan_speed_percent")|int == 33 %}
+              script.fan_1
+            {% elif states("input_number.fan_speed_percent")|int == 66 %}
+              script.fan_2
+            {% elif states("input_number.fan_speed_percent")|int == 100 %}
+              script.fan_3
+            {% else %}
+              script.fan_off
+            {% endif %}
+        - service: >
+            {% if states("input_number.fan_speed_percent")|int == 33 %}
+              input_boolean.turn_on
+            {% elif states("input_number.fan_speed_percent")|int == 66 %}
+              input_boolean.turn_on
+            {% elif states("input_number.fan_speed_percent")|int == 100 %}
+              input_boolean.turn_on
+            {% else %}
+              input_boolean.turn_off
+            {% endif %}
+          target:
+            entity_id: input_boolean.fan_state
+    fan_1:
+      sequence:
+        - service: switch.turn_on
+          target:
+              entity_id: switch.sw1
+    fan_2:
+      sequence:
+        - service: switch.turn_on
+          target:
+              entity_id: switch.sw2
+    fan_3:
+      sequence:
+        - service: switch.turn_on
+          target:
+              entity_id: switch.sw3
